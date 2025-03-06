@@ -16,6 +16,14 @@
 
 #include QMK_KEYBOARD_H
 
+// Bật tất cả hiệu ứng LED
+#define RGBLIGHT_ANIMATIONS
+#define RGBLIGHT_DEFAULT_MODE 1  // Mặc định mode 1
+#define RGBLIGHT_DISABLE_SAVE    // Không lưu vào EEPROM
+#define RGBLIGHT_DISABLE_EEPROM                        // Không lưu trạng thái LED vào EEPROM
+#define VIA_EEPROM_CUSTOM_RESET                        // Ngăn VIA ghi đè cấu hình LED
+#define RGBLIGHT_LAYERS_OVERRIDE
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 	// Default layer
@@ -46,3 +54,82 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 	),
 };
 
+/*
+#include "timer.h"
+
+#define EFFECT_DELAY 3000 // Chuyển hiệu ứng mỗi 5 giây
+
+uint16_t last_effect_change = 0;
+uint8_t current_mode = 1;
+
+void matrix_scan_user(void) {
+    if (timer_elapsed(last_effect_change) > EFFECT_DELAY) {
+        current_mode += 1;
+		if(current_mode > 35)
+			current_mode = 1;
+        rgblight_mode(current_mode);
+        last_effect_change = timer_read();
+    }
+}
+*/
+
+
+#include "rgblight.h"
+#include "timer.h"
+
+#define EFFECT_DELAY 15000
+#define COLOR_CHANGE_COUNT 5
+#define NUM_EFFECTS 35
+
+uint16_t last_effect_change = 0;
+uint8_t effect_index = 0;
+uint8_t color_change_counter = 0;
+uint8_t effect_list[NUM_EFFECTS];
+
+bool single_color_effects[] = {
+    false, true,  false, true,  false, true,  false, false, true,  false,
+    true,  false, true,  false, false, false, true,  false, true,  false,
+    true,  false, false, false, true,  false, true,  false, false, true,
+    false, true,  false, false, false
+};
+
+void shuffle_effects(void) {
+    for (uint8_t i = 0; i < NUM_EFFECTS; i++) {
+        effect_list[i] = i + 1;
+    }
+    for (uint8_t i = 0; i < NUM_EFFECTS - 1; i++) {
+        uint8_t j = i + (rand() % (NUM_EFFECTS - i));
+        uint8_t temp = effect_list[i];
+        effect_list[i] = effect_list[j];
+        effect_list[j] = temp;
+    }
+}
+
+void matrix_scan_user(void) {
+    // Kiểm tra nếu VIA đang điều khiển LED
+    if (!rgblight_is_enabled() || rgblight_get_mode() == 0) {
+        return;
+    }
+
+    if (effect_index == 0) {
+        shuffle_effects();
+    }
+
+    if (timer_elapsed(last_effect_change) > EFFECT_DELAY) {
+        if (single_color_effects[effect_list[effect_index] - 1] && color_change_counter < COLOR_CHANGE_COUNT) {
+            rgblight_sethsv_noeeprom(rand() % 256, 255, 255); // Không ghi EEPROM
+            color_change_counter++;
+        } else {
+            color_change_counter = 0;
+            rgblight_mode_noeeprom(effect_list[effect_index]); // Không ghi EEPROM
+            effect_index++;
+
+            if (effect_index >= NUM_EFFECTS) {
+                effect_index = 0;
+                shuffle_effects();
+            }
+        }
+        last_effect_change = timer_read();
+		rgblight_set_speed_noeeprom(128);//50%
+    }
+}

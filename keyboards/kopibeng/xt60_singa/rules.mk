@@ -1,0 +1,10 @@
+VIA_ENABLE = yes
+# RGBLIGHT_ENABLE = yes
+RGBLIGHT_ANIMATIONS = yes
+# RGBLIGHT_ENABLE = yes
+RGBLIGHT_EFFECTS = yes
+
+#ngăn VIA kiểm soát RGB
+VIA_LIGHTING_ENABLE = no
+# tắt hoàn toàn EEPROM cho RGB
+NOEEPROM_ENABLE = yes

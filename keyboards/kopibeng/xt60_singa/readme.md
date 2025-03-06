@@ -19,3 +19,21 @@ See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_to
 * Physical reset button: Press the RESET switch on top side of PCB.
 * Bootmagic reset: Unplug keyboard, hold down ESC key and plug in the keyboard.
 * Keycode reset: Press the `QK_BOOT` keycode (default: MO(1) + R keys) in layout if available.
+
+
+
+
+
+
+
+
+
+
+
+git clone https://github.com/luucongdac/qmk_firmware.git
+cd 
+git submodule update --init
+qmk setup
+qmk compile -kb kopibeng/xt60_singa -km default
+qmk flash -kb kopibeng/xt60_singa -km default
+
